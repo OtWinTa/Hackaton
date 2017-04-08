@@ -2,20 +2,18 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 
-namespace Hackaton
-{
-    public class Game1 : Game
-    {
-        enum GameState { Menu, Load, Game, Pause };
-        static GameState State = GameState.Menu;
+namespace Hackaton {
+    public class Game1 : Game {
+        public enum GameState { Menu, Load, Game, Pause };
+        static public GameState State = GameState.Menu;
         static public bool NeedExit = false;
         static public double Dx, Dy;
         StartScreen startScreen;
+        GameScreen gameScreen;
         GraphicsDeviceManager graphics;
         SpriteBatch spriteBatch;
 
-        public Game1()
-        {
+        public Game1() {
             graphics = new GraphicsDeviceManager(this);
             Content.RootDirectory = "Content";
 
@@ -23,31 +21,27 @@ namespace Hackaton
             graphics.SupportedOrientations = DisplayOrientation.LandscapeLeft | DisplayOrientation.LandscapeRight;
         }
 
-        protected override void Initialize()
-        {
+        protected override void Initialize() {
             base.Initialize();
         }
 
-        protected override void LoadContent()
-        {
+        protected override void LoadContent() {
             spriteBatch = new SpriteBatch(GraphicsDevice);
             startScreen = new StartScreen(spriteBatch, Content);
+            gameScreen = new GameScreen(spriteBatch, Content);
         }
 
-        protected override void UnloadContent()
-        {
+        protected override void UnloadContent() {
         }
 
-        protected override void Update(GameTime gameTime)
-        {
+        protected override void Update(GameTime gameTime) {
             var metric = new Android.Util.DisplayMetrics();
             Activity.WindowManager.DefaultDisplay.GetMetrics(metric);
             Dx = (double)metric.WidthPixels / 960.0;
             Dy = (double)metric.HeightPixels / 540.0;
-            switch (State)
-            {
+            base.Update(gameTime);
+            switch (State) {
                 case GameState.Menu:
-                    base.Update(gameTime);
                     startScreen.Update();
                     if (NeedExit) Exit();
                     break;
@@ -56,26 +50,23 @@ namespace Hackaton
                 case GameState.Pause:
                     break;
                 case GameState.Game:
+                    gameScreen.Update();
                     break;
             }
         }
 
-        static public int NormalizeX(int x)
-        {
+        static public int NormalizeX(int x) {
             return (int)(x * Dx);
         }
 
-        static public int NormalizeY(int x)
-        {
+        static public int NormalizeY(int x) {
             return (int)(x * Dy);
         }
 
-        protected override void Draw(GameTime gameTime)
-        {
+        protected override void Draw(GameTime gameTime) {
             GraphicsDevice.Clear(Color.CornflowerBlue);
             spriteBatch.Begin();
-            switch (State)
-            {
+            switch (State) {
                 case GameState.Menu:
                     startScreen.Draw();
                     break;
@@ -84,6 +75,7 @@ namespace Hackaton
                 case GameState.Pause:
                     break;
                 case GameState.Game:
+                    gameScreen.Draw();
                     break;
             }
             spriteBatch.End();
