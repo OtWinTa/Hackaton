@@ -4,11 +4,13 @@ using Microsoft.Xna.Framework.Input;
 
 namespace Hackaton
 {
-    /// <summary>
-    /// This is the main type for your game.
-    /// </summary>
     public class Game1 : Game
     {
+        enum GameState { Menu, Load, Game, Pause };
+        static GameState State = GameState.Menu;
+        static public bool NeedExit = false;
+        static public double Dx, Dy;
+        StartScreen startScreen;
         GraphicsDeviceManager graphics;
         SpriteBatch spriteBatch;
 
@@ -18,70 +20,73 @@ namespace Hackaton
             Content.RootDirectory = "Content";
 
             graphics.IsFullScreen = true;
-            graphics.PreferredBackBufferWidth = 800;
-            graphics.PreferredBackBufferHeight = 480;
             graphics.SupportedOrientations = DisplayOrientation.LandscapeLeft | DisplayOrientation.LandscapeRight;
         }
 
-        /// <summary>
-        /// Allows the game to perform any initialization it needs to before starting to run.
-        /// This is where it can query for any required services and load any non-graphic
-        /// related content.  Calling base.Initialize will enumerate through any components
-        /// and initialize them as well.
-        /// </summary>
         protected override void Initialize()
         {
-            // TODO: Add your initialization logic here
-
             base.Initialize();
         }
 
-        /// <summary>
-        /// LoadContent will be called once per game and is the place to load
-        /// all of your content.
-        /// </summary>
         protected override void LoadContent()
         {
-            // Create a new SpriteBatch, which can be used to draw textures.
             spriteBatch = new SpriteBatch(GraphicsDevice);
-
-            // TODO: use this.Content to load your game content here
+            startScreen = new StartScreen(spriteBatch, Content);
         }
 
-        /// <summary>
-        /// UnloadContent will be called once per game and is the place to unload
-        /// game-specific content.
-        /// </summary>
         protected override void UnloadContent()
         {
-            // TODO: Unload any non ContentManager content here
         }
 
-        /// <summary>
-        /// Allows the game to run logic such as updating the world,
-        /// checking for collisions, gathering input, and playing audio.
-        /// </summary>
-        /// <param name="gameTime">Provides a snapshot of timing values.</param>
         protected override void Update(GameTime gameTime)
         {
-            if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed)
-                Exit();
-
-            // TODO: Add your update logic here
-
-            base.Update(gameTime);
+            var metric = new Android.Util.DisplayMetrics();
+            Activity.WindowManager.DefaultDisplay.GetMetrics(metric);
+            Dx = (double)metric.WidthPixels / 960.0;
+            Dy = (double)metric.HeightPixels / 540.0;
+            switch (State)
+            {
+                case GameState.Menu:
+                    base.Update(gameTime);
+                    startScreen.Update();
+                    if (NeedExit) Exit();
+                    break;
+                case GameState.Load:
+                    break;
+                case GameState.Pause:
+                    break;
+                case GameState.Game:
+                    break;
+            }
         }
 
-        /// <summary>
-        /// This is called when the game should draw itself.
-        /// </summary>
-        /// <param name="gameTime">Provides a snapshot of timing values.</param>
+        static public int NormalizeX(int x)
+        {
+            return (int)(x * Dx);
+        }
+
+        static public int NormalizeY(int x)
+        {
+            return (int)(x * Dy);
+        }
+
         protected override void Draw(GameTime gameTime)
         {
             GraphicsDevice.Clear(Color.CornflowerBlue);
-
-            // TODO: Add your drawing code here
-
+            spriteBatch.Begin();
+            switch (State)
+            {
+                case GameState.Menu:
+                    startScreen.Draw();
+                    break;
+                case GameState.Load:
+                    break;
+                case GameState.Pause:
+                    break;
+                case GameState.Game:
+                    break;
+            }
+            spriteBatch.End();
             base.Draw(gameTime);
         }
     }
