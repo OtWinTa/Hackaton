@@ -29,6 +29,7 @@ namespace Hackaton {
             spriteBatch = new SpriteBatch(GraphicsDevice);
             startScreen = new StartScreen(spriteBatch, Content);
             gameScreen = new GameScreen(spriteBatch, Content);
+            Enemy1.SetTexture(spriteBatch, Content, "Enemy1", "Enemy1");
         }
 
         protected override void UnloadContent() {
