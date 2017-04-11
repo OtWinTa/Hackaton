@@ -5,7 +5,7 @@ using Microsoft.Xna.Framework;
 using Android.Content;
 
 namespace Hackaton{
-    class Enemy1 : Enemy{
+    public class Enemy1 : Enemy{
 
     }
 }

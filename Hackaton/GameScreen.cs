@@ -3,45 +3,41 @@ using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework;
 using Android.Content;
+using System.Collections.Generic;
 using System;
 
 namespace Hackaton {
     class GameScreen {
         const double zoomkof = 0.01;
         const double dragTolerance = 1;
-        bool IsMove = false, Iszoomin = false;
+
         static public double Scale = 0.5, dist;
-        int x, y, offsetX, offsetY, offsetXX, offsetYY;
+        static public int x, y, offsetX, offsetY, offsetXX, offsetYY;
+
+        bool IsMove = false;
+        bool Iszoomin = false;
         Texture2D Texture;
         ContentManager Content;
-        SpriteBatch spriteBatch;
-        Button PauseBtn, ArrowBtn;
         GameProcess gameProcess;
-        //Button StartBtn, RecordBtn, ExitBtn;
 
-        public GameScreen(SpriteBatch ASpriteBatch, ContentManager AContent) {
-            spriteBatch = ASpriteBatch;
+        public GameScreen(ContentManager AContent) {
             Content = AContent;
             Content.RootDirectory = "Content";
             Texture = Content.Load<Texture2D>("GameScreen");
-            PauseBtn = new Button(315, 240, 330, 70, spriteBatch);
-            PauseBtn.SetImage("BtnPause", "BtnPauseP", Content);
             gameProcess = new GameProcess();
-            //ArrowBtn = new Button(315, 240, 330, 70, spriteBatch);
-            //ArrowBtn.SetImage("BtnArrow", "BtnArrowP", Content);
         }
 
         public void Draw() {
-            spriteBatch.Draw(Texture, new Rectangle(0, 0, Game1.NormalizeX(960), Game1.NormalizeY(540)),
-                new Rectangle(offsetX + offsetXX, offsetY + offsetYY, (int)(960 * Scale), (int)(540 * Scale)), Color.White);
-            //PauseBtn.Draw();
+            Render.Draw(Texture, new Rectangle(0, 0, 960, 540),
+                new Rectangle(offsetX + offsetXX, offsetY + offsetYY, (int)(960 * Scale), (int)(540 * Scale)));
+            gameProcess.Draw();
         }
 
         void CellClick(int x, int y) {
 
         }
 
-        void CheckTouch(TouchCollection Touches) {
+        void CheckTouch(List<Render.Touch> Touches) {
             if (Touches.Count == 0) {
                 IsMove = Iszoomin = false;
                 return;
@@ -66,7 +62,8 @@ namespace Hackaton {
                 offsetYY = Math.Max(Math.Min((int)(Scale * (y - (int)Touches[0].Position.Y)), 540 - (int)(Scale * Texture.Height) - offsetY), -offsetY);
                 IsMove = true;
             }
-            if (Touches.Count == 2) {
+            if (Iszoomin && Touches.Count == 1) IsMove = true;
+            if (Touches.Count > 1 && !IsMove) {
                 double d = Math.Sqrt((Touches[0].Position.X * Touches[0].Position.X + Touches[1].Position.X * Touches[1].Position.X) +
                     (Touches[0].Position.Y * Touches[0].Position.Y + Touches[1].Position.Y * Touches[1].Position.Y));
                 if (Touches[1].State == TouchLocationState.Pressed)
@@ -90,10 +87,9 @@ namespace Hackaton {
             }
         }
 
-        public void Update() {
-            TouchCollection Touches = TouchPanel.GetState();
-
+        public void Update(List<Render.Touch> Touches) {
             CheckTouch(Touches);
+            gameProcess.Update();
             //if (StartBtn.CheckTouch(Touches)) {
             //    return;
             //}

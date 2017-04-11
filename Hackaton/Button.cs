@@ -4,19 +4,22 @@ using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
 using Android.Content;
+using System.Collections.Generic;
 
 namespace Hackaton {
     class Button{
+        public delegate void PressFunc();
+
         public int PosX, PosY, height, width;
         bool isPress = false;
         Texture2D Texture, PressTexture;
-        SpriteBatch spriteBatch;
+        PressFunc Press;
 
-        public Button(int Ax, int Ay, int Awidth, int Aheigh, SpriteBatch AspriteBatch) {
+        public Button(int Ax, int Ay, int Awidth, int Aheigh, PressFunc APress) {
             PosX = Ax; PosY = Ay;
             width = Awidth;
             height = Aheigh;
-            spriteBatch = AspriteBatch;
+            Press = APress;
         }
 
         public void SetImage(string Tpath, string PTpath, ContentManager Content) {
@@ -25,19 +28,19 @@ namespace Hackaton {
         }
 
         public void Draw() {
-            spriteBatch.Draw(isPress ? Texture : PressTexture, new Rectangle(Game1.NormalizeX(PosX), Game1.NormalizeY(PosY),
-                Game1.NormalizeX(width), Game1.NormalizeY(height)), Color.White);
+            Render.Draw(isPress ? Texture : PressTexture, new Rectangle(PosX, PosY, width, height));
         }
 
-        public bool CheckTouch(TouchCollection Touches) {
-            if (Touches.Count != 1)
-                return isPress = false;
-            else {
-                isPress = (Touches[0].Position.X >= Game1.NormalizeX(PosX) && Touches[0].Position.X <= Game1.NormalizeX(PosX + width) &&
-                    Touches[0].Position.Y >= Game1.NormalizeY(PosY) && Touches[0].Position.Y <= Game1.NormalizeY(PosY + height));
-                if (Touches[0].State == TouchLocationState.Released && isPress)
-                    return !(isPress = false);
-                return false;
+        public void Update(List<Render.Touch> Touches) {
+            if (Touches.Count != 1) {
+                isPress = false;
+                return;
+            }
+            isPress = (Touches[0].Position.X >= PosX && Touches[0].Position.X <= PosX + width &&
+                Touches[0].Position.Y >= PosY && Touches[0].Position.Y <= PosY + height);
+            if (Touches[0].State == TouchLocationState.Released && isPress) {
+                isPress = false;
+                Press();
             }
         }
         

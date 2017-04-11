@@ -1,61 +1,70 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using Microsoft.Xna.Framework;
 
-namespace Hackaton{
+namespace Hackaton {
 
     class GameProcess {
-        public int[,] GameFild;
+        static public List<Type> EnemyType = new List<Type>();
+        static public List<Vector2> Way;
+
+        public Vector2[,] GameFild;
         public Tower[,] Towers;
-        int[] MainCell = {3 * 35 + 2, 17 * 35 + 2, 17 * 35 + 32, 3 * 35 + 32, 3 * 35 + 17, 31 * 35 + 17, 31 * 35 + 32 };
-        ArrayList Way;
+
+        Enemy enemy;
+        List<Vector2> MainCell = new List<Vector2>{new Vector2(2, 2), new Vector2(2, 17), new Vector2(32, 17),
+            new Vector2(32, 2), new Vector2(17, 2), new Vector2(17, 32), new Vector2(32, 32)};
+
         public GameProcess() {
-            Way = new ArrayList();
-            GameFild = new int[35, 35];
+            Way = new List<Vector2>();
+            GameFild = new Vector2[35, 35];
             Towers =  new Tower[35, 35];
             GetWay();
+            //enemy = new Enemy1();
         }
 
-        void Zero() {
-            for (int i = 0; i < 35; i++)
-                for (int j = 0; j < 35; j++)
-                    GameFild[i, j] = -1;
+        public void Update() {
+            //enemy.Update();
+        }
+
+        public void Draw() {
+            //enemy.Draw();
         }
 
         bool GetWay() {
-            ArrayList stack = new ArrayList();
+            List<Vector2> stack = new List<Vector2>();
             Way.Clear();
             Way.Add(MainCell[0]);
-            for (int i = 1; i < MainCell.Length; i++) {
+            for (int i = 1; i < MainCell.Count; i++) {
                 stack.Clear();
-                Zero();
-                stack.Add((int)Way[Way.Count - 1]);
+                GameFild = new Vector2[35, 35];
+                stack.Add(Way[Way.Count - 1]);
                 int ind = 0;
-                GameFild[(int)stack[ind] / 35, (int)stack[ind] % 35] = -2;
-                while (ind < stack.Count && (int)stack[ind] != MainCell[i]) {
-                    int v = (int)stack[ind++];
-                    if (v > 34 && Towers[v / 35 - 1, v % 35] == null && GameFild[v / 35 - 1, v % 35] == -1) {
-                        stack.Add(v - 35);
-                        GameFild[v / 35 - 1, v % 35] = v;
+                while (ind < stack.Count && stack[ind] != MainCell[i]) {
+                    Vector2 v = stack[ind++];
+                    if (v.Y > 0 && Towers[(int)v.X, (int)v.Y - 1] == null && GameFild[(int)v.X, (int)v.Y - 1].X + GameFild[(int)v.X, (int)v.Y - 1].Y == 0) {
+                        stack.Add(new Vector2(v.X, v.Y - 1));
+                        GameFild[(int)v.X, (int)v.Y- 1] = v;
                     }
-                    if (v < 35 * 34 && Towers[v / 35 + 1, v % 35] == null && GameFild[v / 35 + 1, v % 35] == -1) {
-                        stack.Add(v + 35);
-                        GameFild[v / 35 + 1, v % 35] = v;
+                    if (v.Y < 34 && Towers[(int)v.X, (int)v.Y + 1] == null && GameFild[(int)v.X, (int)v.Y + 1].X + GameFild[(int)v.X, (int)v.Y + 1].Y == 0) {
+                        stack.Add(new Vector2(v.X, v.Y + 1));
+                        GameFild[(int)v.X, (int)v.Y + 1] = v;
                     }
-                    if (v % 35 > 0 && Towers[v / 35, v % 35 - 1] == null && GameFild[v / 35, v % 35 - 1] == -1) {
-                        stack.Add(v - 1);
-                        GameFild[v / 35, v % 35 - 1] = v;
+                    if (v.X > 0 && Towers[(int)v.X - 1, (int)v.Y] == null && GameFild[(int)v.X - 1, (int)v.Y].X + GameFild[(int)v.X - 1, (int)v.Y].Y == 0) {
+                        stack.Add(new Vector2(v.X - 1, v.Y));
+                        GameFild[(int)v.X - 1, (int)v.Y] = v;
                     }
-                    if (v % 35 < 34 && Towers[v / 35, v % 35 + 1] == null && GameFild[v / 35, v % 35 + 1] == -1) {
-                        stack.Add(v + 1);
-                        GameFild[v / 35, v % 35 + 1] = v;
+                    if (v.X < 34 && Towers[(int)v.X + 1, (int)v.Y] == null && GameFild[(int)v.X + 1, (int)v.Y].X + GameFild[(int)v.X + 1, (int)v.Y].Y == 0) {
+                        stack.Add(new Vector2(v.X + 1, v.Y));
+                        GameFild[(int)v.X + 1, (int)v.Y] = v;
                     }
                 }
-                if ((int)stack[ind] != MainCell[i]) return false;
-                ArrayList locWay = new ArrayList();
+                if (stack[ind] != MainCell[i]) return false;
+                List<Vector2> locWay = new List<Vector2>();
                 locWay.Add(MainCell[i]);
-                while (GameFild[(int)locWay[locWay.Count - 1] / 35, (int)locWay[locWay.Count - 1] % 35] != MainCell[i - 1]) {
-                    locWay.Add(GameFild[(int)locWay[locWay.Count - 1] / 35, (int)locWay[locWay.Count - 1] % 35]);
+                while (GameFild[(int)locWay[locWay.Count - 1].X, (int)locWay[locWay.Count - 1].Y] != MainCell[i - 1]) {
+                    locWay.Add(GameFild[(int)locWay[locWay.Count - 1].X, (int)locWay[locWay.Count - 1].Y]);
                 }
                 locWay.Reverse();
                 Way.AddRange(locWay);

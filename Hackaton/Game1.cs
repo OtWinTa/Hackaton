@@ -1,24 +1,26 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using Microsoft.Xna.Framework.Input.Touch;
 using Microsoft.Xna.Framework.Input;
+using System.Collections.Generic;
 
 namespace Hackaton {
+
     public class Game1 : Game {
-        public enum GameState { Menu, Load, Game, Pause };
-        static public GameState State = GameState.Menu;
-        static public bool NeedExit = false;
-        static public double Dx, Dy;
         StartScreen startScreen;
         GameScreen gameScreen;
         GraphicsDeviceManager graphics;
-        SpriteBatch spriteBatch;
+
+        public enum GameState { Menu, Load, Game, Pause };
+        static public GameState State = GameState.Menu;
+        static public bool NeedExit = false;
 
         public Game1() {
             graphics = new GraphicsDeviceManager(this);
-            Content.RootDirectory = "Content";
-
             graphics.IsFullScreen = true;
             graphics.SupportedOrientations = DisplayOrientation.LandscapeLeft | DisplayOrientation.LandscapeRight;
+
+            GameProcess.EnemyType.Add(new Enemy1().GetType());
         }
 
         protected override void Initialize() {
@@ -26,10 +28,9 @@ namespace Hackaton {
         }
 
         protected override void LoadContent() {
-            spriteBatch = new SpriteBatch(GraphicsDevice);
-            startScreen = new StartScreen(spriteBatch, Content);
-            gameScreen = new GameScreen(spriteBatch, Content);
-            Enemy1.SetTexture(spriteBatch, Content, "Enemy1", "Enemy1");
+            Render.spriteBatch = new SpriteBatch(GraphicsDevice);
+            startScreen = new StartScreen(Content);
+            gameScreen = new GameScreen(Content);
         }
 
         protected override void UnloadContent() {
@@ -38,35 +39,28 @@ namespace Hackaton {
         protected override void Update(GameTime gameTime) {
             var metric = new Android.Util.DisplayMetrics();
             Activity.WindowManager.DefaultDisplay.GetMetrics(metric);
-            Dx = (double)metric.WidthPixels / 960.0;
-            Dy = (double)metric.HeightPixels / 540.0;
-            base.Update(gameTime);
+            Render.SetScreenInfo(metric);
+
+            List<Render.Touch> Touches = Render.Recount(TouchPanel.GetState());
+
             switch (State) {
                 case GameState.Menu:
-                    startScreen.Update();
-                    if (NeedExit) Exit();
+                    startScreen.Update(Touches);
+                    if (NeedExit) Android.OS.Process.KillProcess(Android.OS.Process.MyPid());
                     break;
                 case GameState.Load:
                     break;
                 case GameState.Pause:
                     break;
                 case GameState.Game:
-                    gameScreen.Update();
+                    gameScreen.Update(Touches);
                     break;
             }
         }
-
-        static public int NormalizeX(int x) {
-            return (int)(x * Dx);
-        }
-
-        static public int NormalizeY(int x) {
-            return (int)(x * Dy);
-        }
-
+        
         protected override void Draw(GameTime gameTime) {
             GraphicsDevice.Clear(Color.CornflowerBlue);
-            spriteBatch.Begin();
+            Render.spriteBatch.Begin();
             switch (State) {
                 case GameState.Menu:
                     startScreen.Draw();
@@ -79,8 +73,7 @@ namespace Hackaton {
                     gameScreen.Draw();
                     break;
             }
-            spriteBatch.End();
-            base.Draw(gameTime);
+            Render.spriteBatch.End();
         }
     }
 }
